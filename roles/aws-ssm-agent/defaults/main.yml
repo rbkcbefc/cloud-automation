@@ -1,0 +1,8 @@
+---
+
+targets: 
+aws_region: us-east-1
+
+ssm_agent_apt_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+ssm_agent_deb_url: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_{{ ssm_agent_apt_arch }}/amazon-ssm-agent.deb"
+ssm_agent_rpm_url: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_{{ ssm_agent_apt_arch }}/amazon-ssm-agent.rpm"

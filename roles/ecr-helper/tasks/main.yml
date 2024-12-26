@@ -1,0 +1,10 @@
+---
+
+- name: Configure RedHat OS Specific Tasks
+  import_tasks: configure-redhat.yml
+  when: ansible_facts['os_family']|lower == 'redhat'
+
+- name: Configure Debian OS Specific Tasks
+  import_tasks: configure-debian.yml
+  when: ansible_facts['os_family']|lower == 'debian'
+

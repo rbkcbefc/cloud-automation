@@ -1,0 +1,34 @@
+---
+
+docker_packages:
+  - "docker-ce"
+  - "docker-ce-cli"
+  - "docker-ce-rootless-extras"
+  - "docker-buildx-plugin"
+
+docker_packages_state: present
+docker_group: docker
+
+debian_user: ubuntu
+redhat_user: ec2-user
+
+# Docker repo URL.
+docker_repo_url: https://download.docker.com/linux
+
+# Used only for Ubuntu
+docker_apt_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+docker_apt_repository: "deb [arch={{ docker_apt_arch }} signed-by=/etc/apt/keyrings/docker.asc] {{ docker_repo_url }}/ubuntu {{ ansible_distribution_release }} stable"
+docker_apt_ignore_key_error: true
+docker_apt_gpg_key: "{{ docker_repo_url }}/ubuntu/gpg"
+docker_apt_gpg_key_checksum: "sha256:1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570"
+docker_apt_filename: "docker"
+
+# Used only for RedHat/CentOS/Fedora.
+docker_yum_repo_url: "{{ docker_repo_url }}/{{ (ansible_distribution == 'Fedora') | ternary('fedora','centos') }}/docker-ce.repo"
+docker_yum_gpg_key: "{{ docker_repo_url }}/centos/gpg"
+
+# Docker daemon options as a dict
+docker_daemon_options:
+  storage-driver: "overlay2"
+  log-opts:
+    max-size: "100m"

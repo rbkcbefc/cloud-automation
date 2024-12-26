@@ -1,0 +1,7 @@
+---
+
+aws_region: us-east-1
+
+ecs_agent_apt_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+ecs_agent_deb_url: "https://s3.{{ aws_region }}.amazonaws.com/amazon-ecs-agent-{{ aws_region }}/amazon-ecs-init-latest.{{ ecs_agent_apt_arch }}.deb"
+ecs_agent_rpm_url: "https://s3.{{ aws_region }}.amazonaws.com/amazon-ecs-agent-{{ aws_region }}/amazon-ecs-init-latest.{{ ansible_architecture }}.rpm"

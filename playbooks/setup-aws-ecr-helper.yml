@@ -1,0 +1,8 @@
+---
+
+- name: Install ECR Helper
+  hosts: all
+  gather_facts: true
+
+  roles:
+    - ecr-helper

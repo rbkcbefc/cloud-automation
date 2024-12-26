@@ -1,0 +1,1 @@
+# Place jinja2 templates in this directory to copy over to VM & apply w/ available variables

@@ -1,0 +1,32 @@
+---
+
+- name: Update apt packages
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: ECR Login - Create .docker directory
+  ansible.builtin.shell: "mkdir /home/{{ debian_user }}/.docker"
+  args:
+    executable: /bin/sh
+
+- name: Copy ECR credential config file
+  template:
+    src=config.json
+    dest=/home/{{ debian_user }}/.docker/config.json
+
+- name: Install ECR Credential Helper
+  ansible.builtin.apt:
+    state: present
+    name:
+      - amazon-ecr-credential-helper
+
+- name: Unconditionally reboot the machine with all defaults
+  ansible.builtin.reboot:
+
+- name: Check the Uptime of the servers
+  shell: "uptime"
+  register: Uptime
+
+- debug: var=Uptime

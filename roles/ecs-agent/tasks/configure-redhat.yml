@@ -1,0 +1,16 @@
+- name: Update dnf packages
+  become: true
+  ansible.builtin.dnf:
+    update_cache: true
+    state: latest
+    use_backend: dnf4
+
+- name: Install the AWS ECS Agent
+  ansible.builtin.yum:
+    name: "{{ ecs_agent_rpm_url }}"
+    state: present
+    disable_gpg_check: true  
+  register: yum_output
+  when: ansible_facts['os_family']|lower == 'redhat'
+
+- debug: var=yum_output

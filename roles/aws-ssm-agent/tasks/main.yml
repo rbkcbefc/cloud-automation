@@ -1,0 +1,26 @@
+---
+
+- name: Configure RedHat OS Specific Tasks
+  import_tasks: configure-redhat.yml
+  when: ansible_facts['os_family']|lower == 'redhat'
+
+- name: Configure Debian OS Specific Tasks
+  import_tasks: configure-debian.yml
+  when: ansible_facts['os_family']|lower == 'debian'
+
+- name: Ensure SSM Agent is started and enabled at boot.
+  service:
+    name: amazon-ssm-agent
+    state: started
+    enabled: true
+  ignore_errors: "{{ ansible_check_mode }}"
+
+# Post installation, reboot the instance. Ansible will wait and re-establish the connection
+- name: Reboot to prepare for Service ECS to start in user-data.sh
+  ansible.builtin.reboot:
+
+- name: Check the Uptime of the servers
+  ansible.builtin.shell: "uptime"
+  register: Uptime
+
+- debug: var=Uptime

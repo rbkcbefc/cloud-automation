@@ -1,0 +1,76 @@
+- name: Update dnf packages
+  become: true
+  ansible.builtin.dnf:
+    update_cache: true
+    state: latest
+    use_backend: dnf4
+
+- name: Install centos-release-opstools
+  ansible.builtin.dnf:
+    state: present
+    use_backend: dnf4
+    name:
+      - centos-release-opstools
+
+- name: Update dnf packages again
+  become: true
+  ansible.builtin.dnf:
+    update_cache: true
+    state: latest
+    use_backend: dnf4
+
+- name: Install RedHat utilities
+  ansible.builtin.dnf:
+    state: present
+    use_backend: dnf4
+    name:
+      - python3
+      - python3-pip
+      - collectd
+      - chrony
+      - curl
+      - unzip
+      - wget
+      - jq
+      - java-21-openjdk-devel
+      #- awslogs # Yet to be tested. CloudWatch logs
+
+- name: Ensure chrony is running
+  ansible.builtin.service:
+    name: chronyd
+    state: started
+    enabled: true
+
+- name: Download awscliv2 installer.
+  unarchive:
+    src: "https://awscli.amazonaws.com/awscli-exe-linux-{{ ansible_architecture }}.zip"
+    dest: "{{ executable_temp_dir }}"
+    remote_src: true
+    creates: '{{ executable_temp_dir }}/aws'
+    mode: 0755
+
+- name: Run the awscliv2 installer.
+  command:
+  args:
+    cmd: "{{ executable_temp_dir }}/aws/install"
+    creates: /usr/local/bin/aws
+  become: true
+  register: aws_install
+
+- name: "Show awscliv2 installer output"
+  debug:
+    var: aws_install
+    verbosity: 2
+
+# Reboot after python3-pip
+- name: Restart server
+  command: /sbin/shutdown -r +1
+  async: 0
+  poll: 0
+  ignore_errors: true
+
+- name: Check the Uptime of the servers
+  shell: "uptime"
+  register: Uptime
+
+- debug: var=Uptime

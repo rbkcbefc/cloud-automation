@@ -1,0 +1,10 @@
+---
+
+- name: Install ECR Helper & ECS Agent
+  hosts: all
+  gather_facts: true
+
+  roles:
+    - ecs-agent
+    - ecr-helper
+    

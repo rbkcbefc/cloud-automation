@@ -1,0 +1,16 @@
+---
+
+- name: Update apt packages
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install AWS ECS Agent on Debian OS
+  ansible.builtin.apt:
+    deb: "{{ ecs_agent_deb_url }}"
+  become: true
+  register: apt_output
+  when: ansible_facts['os_family']|lower == 'debian'
+
+- debug: var=apt_output

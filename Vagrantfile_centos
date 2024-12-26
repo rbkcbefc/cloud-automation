@@ -1,0 +1,18 @@
+Vagrant.configure("2") do |config|
+  config.vm.define "cacentos" do |cacentos|
+    cacentos.vm.box = "bento/centos-stream-9-arm64"
+    cacentos.vm.hostname = 'cacentos'
+    cacentos.vm.network :private_network, ip: "192.168.56.250"
+  
+    cacentos.vm.provider "vmware_desktop" do |vmware|
+      vmware.allowlist_verified = true
+      vmware.gui = false
+      vmware.vmx["memsize"] = "2048"
+      vmware.vmx["numvcpus"] = "2"
+    end
+
+    cacentos.vm.provision "ansible" do |ansible|
+      ansible.playbook = "playbooks/setup-base-image.yml"
+    end
+  end
+end

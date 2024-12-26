@@ -1,0 +1,40 @@
+---
+
+# target hosts
+targets: 
+
+# Runner user - user under which is the local runner service running
+runner_user: "{{ lookup('env', 'USER') }}"
+
+# Directory where the local runner will be installed
+runner_dir: "/opt/actions-runner"
+
+# Version of the GitHub Actions Runner. 
+# If set to 'latest', exact version will be retrieved from api 
+runner_version: "latest"
+
+# State in which the runner service will be after the role is done (started, stopped, absent)
+runner_state: "started"
+
+github_personal_access_token:
+
+# GitHub Repository User or Organization or Handle used for Runner registration
+github_account: "rbkcbefc"
+
+# Github Repository 
+github_repo: "mock-nasa-sound-api-service"
+
+# Labels to apply to the runner
+runner_labels: []
+
+# Group to add organization runner
+runner_group: ""
+
+# Extra arguments to pass to `config.sh`.
+runner_extra_config_args: ""
+
+# Name to assign to this runner in GitHub (System hostname as default)
+runner_name: "self-hosted-{{ runner_version }}-{{ github_actions_system_map[ansible_facts.system] }}-{{ github_actions_architecture_map[ansible_facts.architecture] }}"
+
+# Ansible logs may contain sensitive data (registration token etc)
+hide_sensitive_logs: true
