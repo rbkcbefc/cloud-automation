@@ -1,0 +1,4 @@
+---
+
+debian_user: ubuntu
+redhat_user: ec2-user

@@ -1,0 +1,43 @@
+- name: Update dnf packages
+  become: true
+  ansible.builtin.dnf:
+    update_cache: true
+    state: latest
+    use_backend: dnf4
+
+- name: Install RedHat utilities
+  ansible.builtin.dnf:
+    state: present
+    use_backend: dnf4
+    name:
+      - python3
+      - python3-pip
+      - collectd
+      - chrony
+      - unzip
+      - wget
+      - jq
+      - java-22-amazon-corretto-headless
+      - java-22-amazon-corretto-devel
+      #- curl
+      #- java-22-openjdk-devel
+      #- awslogs # Yet to be tested. CloudWatch logs
+
+- name: Ensure chrony is running
+  ansible.builtin.service:
+    name: chronyd
+    state: started
+    enabled: true
+
+# Reboot after python3-pip
+- name: Restart server
+  command: /sbin/shutdown -r +1
+  async: 0
+  poll: 0
+  ignore_errors: true
+
+- name: Check the Uptime of the servers
+  shell: "uptime"
+  register: Uptime
+
+- debug: var=Uptime

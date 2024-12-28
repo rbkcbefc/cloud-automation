@@ -1,0 +1,18 @@
+---
+
+- name: Configure RedHat OS Specific Tasks
+  import_tasks: configure-redhat.yml
+  when: ansible_facts['os_family']|lower == 'redhat'
+
+- name: Configure Debian OS Specific Tasks
+  import_tasks: configure-debian.yml
+  when: ansible_facts['os_family']|lower == 'debian'
+
+- name: Copy ECS Service file
+  become: true
+  template:
+    src=ecs.service
+    dest=/etc/systemd/system/ecs.service
+    owner=root
+    group=root
+    mode=0644

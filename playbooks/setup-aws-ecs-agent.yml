@@ -1,0 +1,8 @@
+---
+
+- name: Install ECS Agent
+  hosts: all
+  gather_facts: true
+
+  roles:
+    - ecs-agent

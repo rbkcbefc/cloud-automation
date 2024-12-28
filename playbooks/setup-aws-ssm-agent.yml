@@ -1,0 +1,10 @@
+---
+
+# SSM Agent is pre-installed in AWS Certified Ubuntu and CentOS AMIs.
+# This playbook is needed only for Non-Certified and On-Prem AMIs for Hybrid Cloud
+- name: Install AWS SSM Agent
+  hosts: all
+  gather_facts: true
+
+  roles:
+    - aws-ssm-agent

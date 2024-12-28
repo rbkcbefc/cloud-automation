@@ -1,0 +1,12 @@
+---
+
+- name: Verify Connectivity
+  hosts: '{{ targets }}'
+  gather_facts: true
+  vars_files:
+    - ansible-secret-vars.yml
+  tasks:
+    - name: Wait 600 seconds, but only start checking after configured delay seconds
+      ansible.builtin.wait_for_connection:
+      delay: 5
+      timeout: 600

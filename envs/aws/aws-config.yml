@@ -1,0 +1,44 @@
+environments:
+  nightly:
+    region: "us-east-1"
+    tf_state_aws_s3_bucket: "rbkcbefc-infra-automation-nightly"
+    vpc_name: "vpc-nightly"
+    cidr_block: "10.0.0.0/16"
+    azs: 
+     - "us-east-1a"
+     - "us-east-1b"
+     - "us-east-1c"
+    private_subnets:
+     - "10.0.1.0/24"
+     - "10.0.2.0/24"
+     - "10.0.3.0/24"
+    public_subnets:
+      - "10.0.101.0/24"
+      - "10.0.102.0/24"
+      - "10.0.103.0/24"
+    enable_nat_gateway: true
+    enable_vpn_gateway: true
+    bastion_host_name: 54.164.57.2 # helps to execute ansible playbooks
+    bastion_host_user: ubuntu
+    bastion_host_private_key_file_path: ~/.ssh/rbkbusde-us-east-1.pem
+    ami_user: ubuntu
+    key_name: rbkbusde-us-east-1
+    ansible_dynamic_inventory: hosts.aws_ec2.yml
+    cpu_arch: "ARM64"
+    my_base_ami: ami-0881d2894a9c98dbf
+    my_docker_ami: ami-01bbea3250f7e0741
+    my_aws_ecr_ecs_ami: ami-0b7b1c2ff6ec04060
+    ec2_instance_key_name: rbkbusde-us-east-1
+    ec2_instance_profile_name: ec2-core-profile
+    ecs_instance_type: t4g.medium
+    ecs_task_execution_profile_name: ecs-task-execution
+  qa:
+    region: "us-east-1"
+    tf_state_aws_s3_bucket: "rbkcbefc-infra-automation-qa"
+  prod:
+    region: "us-east-1"
+    tf_state_aws_s3_bucket: "rbkcbefc-infra-automation-prod"
+  staging:
+    region: "us-east-1"
+    tf_state_aws_s3_bucket: "rbkcbefc-infra-automation-staging"  
+    

@@ -1,0 +1,31 @@
+# Important: Package 'amazon-ecr-credential-helper' is not available for CentOS 9
+
+- name: Update dnf packages
+  become: true
+  ansible.builtin.dnf:
+    update_cache: true
+    state: latest
+    use_backend: dnf4
+
+- name: ECR Login - Create .docker directory
+  ansible.builtin.shell: "mkdir /home/{{ redhat_user }}/.docker"
+  args:
+    executable: /bin/sh
+
+- name: Copy ECR credential config file
+  template:
+    src=config.json
+    dest=/home/{{ redhat_user }}/.docker/config.json
+
+# Reboot after python3-pip
+- name: Restart server
+  command: /sbin/shutdown -r +1
+  async: 0
+  poll: 0
+  ignore_errors: true
+
+- name: Check the Uptime of the servers
+  shell: "uptime"
+  register: Uptime
+
+- debug: var=Uptime

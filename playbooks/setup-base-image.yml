@@ -1,0 +1,9 @@
+# Set up basic, standardized components across all servers.
+---
+
+- name: Install basic utilities
+  hosts: all
+  gather_facts: true
+
+  roles:
+    - basic_utils

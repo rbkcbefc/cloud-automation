@@ -1,0 +1,7 @@
+---
+
+- name: Install Github Actions Runner
+  hosts: "{{ targets }}"
+  gather_facts: true
+  roles:
+    - setup-actions-runner

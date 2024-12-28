@@ -1,0 +1,69 @@
+  
+- name: Update apt packages
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install Debian utilities
+  ansible.builtin.apt:
+    state: present
+    name:
+      - chrony
+      - curl
+      - unzip
+      - wget
+      - python3
+      - python3-pip
+      - htop
+      - collectd
+      #- awslogs # Yet to be tested. CloudWatch logs
+      #- net-tools # netstat etc
+- name: Ensure chrony is running.
+  ansible.builtin.service:
+    name: chronyd
+    state: started
+    enabled: true
+
+- name: Install aws cli
+  community.general.snap:
+    name: aws-cli
+    classic: yes
+
+- name: Install Debian OS & ARM64 - JRE
+  apt:
+    deb: https://launchpad.net/ubuntu/+source/openjdk-22/22.0.2+9-4/+build/28918996/+files/openjdk-22-jre-headless_22.0.2+9-4_arm64.deb
+  become: true
+  when: ansible_facts['os_family']|lower == 'debian' and
+        ansible_architecture == 'aarch64'
+
+- name: Install Debian OS & ARM64 - JDK
+  apt:
+    deb: https://launchpad.net/ubuntu/+source/openjdk-22/22.0.2+9-4/+build/28918996/+files/openjdk-22-jdk-headless_22.0.2+9-4_arm64.deb
+  become: true
+  when: ansible_facts['os_family']|lower == 'debian' and
+        ansible_architecture == 'aarch64'
+
+- name: Install Debian OS & AMD64 - JRE
+  apt:
+    deb: https://launchpad.net/ubuntu/+source/openjdk-22/22.0.2+9-4/+build/28918995/+files/openjdk-22-jre-headless_22.0.2+9-4_amd64.deb
+  become: true
+  when: ansible_facts['os_family']|lower == 'debian' and
+        ansible_architecture == 'amd64'
+
+- name: Install Debian OS & AMD64 - JDK
+  apt:
+    deb: https://launchpad.net/ubuntu/+source/openjdk-22/22.0.2+9-4/+build/28918995/+files/openjdk-22-jdk-headless_22.0.2+9-4_amd64.deb
+  become: true
+  when: ansible_facts['os_family']|lower == 'debian' and
+        ansible_architecture == 'amd64'
+
+# Reboot after python3-pip
+- name: Unconditionally reboot the machine with all defaults
+  ansible.builtin.reboot:
+
+- name: Check the Uptime of the servers
+  shell: "uptime"
+  register: Uptime
+
+- debug: var=Uptime

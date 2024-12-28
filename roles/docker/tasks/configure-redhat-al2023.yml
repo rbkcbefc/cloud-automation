@@ -1,0 +1,8 @@
+---
+
+- name: Install RedHat AL2023 Docker
+  ansible.builtin.dnf:
+    state: present
+    use_backend: dnf4
+    name:
+      - docker

@@ -1,0 +1,161 @@
+---
+
+- name: Wait for instances to become reachable over SSH
+  ansible.builtin.wait_for_connection:
+    delay: 5
+    timeout: 600
+
+- name: Configure RedHat OS Specific Tasks
+  import_tasks: configure-redhat.yml
+  when: ansible_facts['os_family']|lower == 'redhat'
+
+- name: Configure Debian OS Specific Tasks
+  import_tasks: configure-debian.yml
+  when: ansible_facts['os_family']|lower == 'debian'
+
+- name: Get Runner User IDs
+  ansible.builtin.command: id -u "{{ runner_user }}"
+  changed_when: false
+  register: runner_user_id
+
+- name: Get Runner Group IDs
+  ansible.builtin.command: id -g "{{ runner_user }}"
+  changed_when: false
+  register: runner_user_group_id
+
+- name: Create runner directory
+  ansible.builtin.file:
+    path: "{{ runner_dir }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ runner_user_id.stdout }}"
+    group: "{{ runner_user_group_id.stdout }}"
+
+- name: Retrieve the latest runner version
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/actions/runner/releases/latest"
+    headers:
+      Authorization: "token {{ github_personal_access_token }}"
+      Content-Type: "application/json"
+    method: GET
+    return_content: true
+    status_code: 200
+    body_format: json
+  check_mode: false
+  register: api_response
+  run_once: true
+  become: false
+  delegate_to: localhost
+  when: runner_version == "latest"
+
+- name: Set runner_version variable (If latest)
+  ansible.builtin.set_fact:
+    runner_version: "{{ api_response.json.tag_name | regex_replace('^v', '') }}"
+  when: runner_version == "latest"
+
+- name: Check if desired version already installed
+  ansible.builtin.command: "grep -i {{ runner_version }} {{ runner_dir }}/bin/Runner.Listener.deps.json"
+  register: runner_installed
+  check_mode: false
+  changed_when: false
+  ignore_errors: true
+
+- name: Check if runner service name file exist
+  ansible.builtin.stat:
+    path: "{{ runner_dir }}/.service"
+  register: runner_service_file_path
+
+- name: Download and unarchive runner package
+  ansible.builtin.unarchive:
+    src: "https://github.com/actions/runner/releases/download/v{{ runner_version }}/\
+          actions-runner-{{ github_actions_system }}-{{ github_actions_architecture }}-{{ runner_version }}.tar.gz"
+    dest: "{{ runner_dir }}/"
+    owner: "{{ runner_user_id.stdout }}"
+    group: "{{ runner_user_group_id.stdout }}"
+    remote_src: true
+    mode: "0755"
+  environment:
+    PATH: /usr/local/bin:{{ ansible_facts.user_dir }}/bin:{{ ansible_facts.env.PATH }}
+  when: runner_version not in runner_installed.stdout
+
+- name: Get registration token
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/{{ github_account }}/{{ github_repo }}/actions/runners/registration-token"
+    headers:
+      Authorization: "token {{ github_personal_access_token }}"
+      Accept: "application/vnd.github.v3+json"
+    method: POST
+    status_code: 201
+    force_basic_auth: true
+  register: registration
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+# un-comment to debug any failure
+#- debug: var=registration
+
+- name: Check currently registered runners for repo
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/{{ github_account }}/{{ github_repo }}/actions/runners"
+    headers:
+      Authorization: "token {{ github_personal_access_token }}"
+      Accept: "application/vnd.github.v3+json"
+    method: GET
+    body_format: form-urlencoded
+    body:
+      per_page: "100"
+    status_code: 200
+    force_basic_auth: true
+  register: registered_runners
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+# un-comment to debug any failure
+#- debug: var=registered_runners
+
+- name: Register runner 
+  environment:
+    RUNNER_ALLOW_RUNASROOT: "1"
+  ansible.builtin.command:
+    "{{ runner_dir }}/./config.sh \
+    --url 'https://github.com/{{ github_account }}/{{ github_repo }}' \
+    --token {{ registration.json.token }} \
+    --name '{{ runner_name }}' \
+    --labels {{ runner_labels | join(',') }} \
+    --runnergroup {{ runner_group }} \
+    --unattended \
+    {{ runner_extra_config_args }}"
+  args:
+    chdir: "{{ runner_dir }}"
+  changed_when: true
+  become_user: "{{ runner_user }}"
+  become: true
+  no_log: "{{ hide_sensitive_logs | bool }}"
+  when: runner_name not in registered_runners.json.runners|map(attribute='name')|list
+
+- name: Install service
+  ansible.builtin.command: "./svc.sh install {{ runner_user }}"
+  args:
+    chdir: "{{ runner_dir }}"
+  changed_when: true
+  become: true
+  when: not runner_service_file_path.stat.exists
+
+- name: Read service name from file
+  ansible.builtin.slurp:
+    src: "{{ runner_dir }}/.service"
+  register: runner_service
+
+- name: Start and enable Github Actions Runner Service (Linux)
+  ansible.builtin.command: "./svc.sh start"
+  args:
+    chdir: "{{ runner_dir }}"
+  become: true
+  no_log: "{{ hide_sensitive_logs | bool }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  changed_when: true
+  when: >
+    runner_state|lower == "started" and
+    ansible_facts.services[(runner_service.content | b64decode) | trim ]['state'] | default('stopped') != 'running'
