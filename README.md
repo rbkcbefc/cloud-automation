@@ -95,7 +95,19 @@ ssh-add -K /Users/<user_name>/.ssh/<aws_key_file>.pem
 ssh -A <user>@<bastion_host_ip>
 ssh -J <user>@<bastion_host_ip> <user>@<target_host_ip>
 
-# Ansible Debug
+# Debug Vagrant
+export VAGRANT_LOG=info
+vagrant up --debug &> vagrant.log
+Link: https://developer.hashicorp.com/vagrant/docs/other/debugging
+
+# Debug Ansible 
 export ANSIBLE_DEBUG=1
 config file: ansible.cfg
 
+# Debug Terraform 
+export TF_LOG=debug
+export TF_LOG_PATH=<path>
+
+# Debug Packer 
+export PACKER_LOG=1
+export PACKER_LOG_PATH=<path>
