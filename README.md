@@ -1,6 +1,6 @@
 # About - Cloud Automation
 
-This framework integrates Vagrant, Ansible, Packer &amp; Terraform Infrastructure As Code (IaC) DevOps Tools to implement CI/CD using Github Actions in AWS Elastic Container Service ( ECS - Container Orchestration in Bridge Mode ) Platform plus Elastic Container Registry ( ECR ).
+This framework integrates Vagrant, Ansible, Packer &amp; Terraform Infrastructure As Code (IaC) DevOps Tools to implement CI/CD using Github Actions in AWS Elastic Container Service ( ECS - Container Orchestration in Bridge Mode ) Platform.
 
 To demonstrate the features, two simple Java based Microservices are built & deployed on AWS ECS.
 
@@ -12,11 +12,12 @@ To demonstrate the features, two simple Java based Microservices are built & dep
 - Supports provisioning multiple Environments ( Nightly, QA, Staging, Production etc ) based on reusable Terraform modules
 - Supports Bastion Host for Network Security
 - Integrates Terraform ( local-exec mode ) & Ansible for provision-time configuration by running Playbook through Bastion Host.
-- Integrates Ansible AWS Dynamic Inventory
+- Integrates Elastic Container Registry ( ECR ) to store Container Images
+- Integrates Ansible AWS Dynamic Inventory Plugin
 - Integrates Ansible Secrets 
 - Integrates Jinja Templates in Terraform & Ansible
-- Integrates Route53 
-- Integrates HTTPS/SSL using Amazon Certificate Manager
+- Integrates Route53 ( Domain: agilealm.click )
+- Integrates HTTPS/SSL using Amazon Certificate Manager ( ACM )
 
 # Technologies
 
@@ -82,14 +83,14 @@ terraform -chdir=envs/aws/infra/security-group/nightly/bastion-host init <config
 - Provision Github Actions Self-hosted Runners ( Mock Email Service & Mock Nasa Sound API Service)
 - Trigger Github Action Builds  ( Mock Email Service & Mock Nasa Sound API Service) 
 - Provision ECS Services ( Mock Email Service & Mock Nasa Sound API Service) 
-- Provision Route53 ( Hosted Zone, ACM & CNAME )
+- Provision Route53 ( Hosted Zone, ACM & CNAME ) - https://mockemailservice.agilealm.click/mockemailservice/index.jsp
 
 # Continous Integration & Delivery ( Github Actions )
 
 - Check the workflow: https://github.com/rbkcbefc/mock-nasa-sound-api-service/blob/master/.github/workflows/build-self-runner-arm64.yml
 Using Self-hosted Runner, Build Docker Image, Push to ECR and Deploy to ECS
 
-# SSH into Bastion Host
+# SSH into Target Host Via Bastion Host
 ssh-add -K /Users/<user_name>/.ssh/<aws_key_file>.pem
 ssh -A <user>@<bastion_host_ip>
 ssh -J <user>@<bastion_host_ip> <user>@<target_host_ip>
