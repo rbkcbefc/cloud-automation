@@ -19,7 +19,7 @@ To demonstrate the features, two simple Java based Microservices are built & dep
 - Integrates Route53 ( Domain: agilealm.click )
 - Integrates HTTPS/SSL using Amazon Certificate Manager ( ACM )
 
-This project has been extended support kubeadm based self-hosted Kubernetes environment ( 1 Control Plane node & 2 Dataplane nodes ) on AWS using Containerd and Calico. For more information, scroll below and checkout section: Kubernetes ( k8s-kubeadm-sh )
+This project has been extended to support kubeadm based self-hosted Kubernetes environment ( 1 Control plane node & 2 Data plane nodes ) on AWS using Containerd and Calico. For more information, scroll below and checkout section: Kubernetes ( k8s-kubeadm-sh )
 
 # Technologies
 
@@ -134,7 +134,7 @@ The controlplane node is provisioned in the public subnet w/ api-server listens 
 The dataplane nodes are provisioned in the private subnet and can only be ssh'd via bastion host
 
 - Secrets
-Once controlplane is provisioned, the generated token & discovery-token are stored in the ansible-vault.
+Once control plane node is provisioned, the generated join token & discovery-token are stored in the ansible-vault.
 
 - Manifests
 Kubernetes manifests files ( namespace, deployment and service ) are in directory: envs/aws/app/mock-email-service/k8s-kubeadm-sh
