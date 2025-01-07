@@ -1,0 +1,10 @@
+---
+
+# Note: Include targets variable when executing this playbook from TF script.
+# set hosts: all when executing playbook for role verification from Vagrantfile
+
+- name: Setup k8s kubeadm based self hosted cluster
+  hosts: "{{ targets }}"
+  gather_facts: true
+  roles:
+    - k8s-kubeadm-sh

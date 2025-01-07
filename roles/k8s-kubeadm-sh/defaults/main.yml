@@ -1,0 +1,33 @@
+---
+
+# target hosts
+targets: 
+
+ansible_user: "vagrant"
+user_home_dir: /home/{{ ansible_user }}
+
+cpu_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
+k8s_version: "1.32"
+k8s_node_role: "controlplane" # dataplane"
+
+cni_version: "1.6.2"
+cni_url: "https://github.com/containernetworking/plugins/releases/download/v{{ cni_version }}/cni-plugins-linux-{{ cpu_arch }}-v{{ cni_version }}.tgz"
+
+# Below configs helps data-plane node to identify and join the control-plane
+control_plane_host: localhost # Eg: "Control Plane Node IP address. Leave it localhost when working w/ Vagrant."
+control_plane_port: 6443
+control_plane_endpoint: "{{ control_plane_host }}:{{ control_plane_port }}"
+
+# Below token helps to establish bidirectional trust between data-plane nodes and control-plane nodes
+# Token generated on control plane node are stored in file: ansible-secret-vars.yml
+k8s_kubeadm_sh_join_token: ""
+k8s_kubeadm_sh_discovery_token: ""
+join_cmd_ignore_preflight_errors: "--ignore-preflight-errors all" # note: set to empty string to check preflight errors for fail-fast
+join_cmd: "kubeadm join {{ control_plane_endpoint }} --token {{ k8s_kubeadm_sh_join_token }} --discovery-token-ca-cert-hash {{ k8s_kubeadm_sh_discovery_token }} {{ join_cmd_ignore_preflight_errors }}"
+pod_network_cidr: 192.168.0.0/16
+current_node_name: "k8s-kubeadm-sh-{{ k8s_node_role }}" # override when configuring dataplane nodes
+
+calico_version: "3.29.1"
+calico_operator_url: https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_version }}/manifests/tigera-operator.yaml
+calico_custom_resource_url: https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_version }}/manifests/custom-resources.yaml

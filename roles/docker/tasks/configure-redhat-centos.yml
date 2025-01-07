@@ -1,20 +1,20 @@
 ---
 
 - name: Add Docker GPG key.
-  rpm_key:
+  ansible.builtin.rpm_key:
     key: "{{ docker_yum_gpg_key }}"
     state: present
 
 - name: Add Docker repository.
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ docker_yum_repo_url }}"
     dest: '/etc/yum.repos.d/docker-ce.repo'
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
 
 - name: Install Docker packages.
-  package:
+  ansible.builtin.package:
     name: "{{ docker_packages }}"
     state: "{{ docker_packages_state }}"
   notify: restart docker

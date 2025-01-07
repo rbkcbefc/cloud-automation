@@ -1,0 +1,7 @@
+---
+
+- name: Setup containerd
+  hosts: all
+  gather_facts: true
+  roles:
+    - containerd

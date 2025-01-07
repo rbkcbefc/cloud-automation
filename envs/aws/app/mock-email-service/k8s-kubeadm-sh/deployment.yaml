@@ -1,0 +1,32 @@
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-email-service-deployment
+  labels:
+    app: mock-email-service
+  namespace: mock-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mock-email-service
+  template:
+    metadata:
+      labels:
+        app: mock-email-service
+    spec:
+      containers:
+      - name: mock-email-service-deployment
+        image: 318075166670.dkr.ecr.us-east-1.amazonaws.com/mock-email-service:563b52b-2024-12-14-22-40-arm64
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "1"
+          requests:
+            memory: 256Mi
+            cpu: "0.2"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080

@@ -77,7 +77,7 @@ resource "aws_instance" "my_instance" {
   iam_instance_profile        = data.aws_iam_instance_profile.ec2-core-profile.name
 
   root_block_device {
-    volume_type           = "gp2"
+    volume_type           = "gp3"
     volume_size           = var.volume_size
     delete_on_termination = true
   }
@@ -111,6 +111,10 @@ resource "aws_instance" "my_instance" {
     local.common_tags
   )
 
+}
+
+output "host_public_ip" {
+  value = "${aws_instance.my_instance.public_ip}"
 }
 
 output "host_private_ip" {

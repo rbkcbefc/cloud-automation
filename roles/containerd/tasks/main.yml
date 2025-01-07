@@ -1,0 +1,101 @@
+---
+
+- name: Print variables
+  ansible.builtin.debug:
+    msg:
+      - "Variable: containerd_url , Value: {{ containerd_url }}"
+      - "Variable: containerd_service_file_url , Value: {{ containerd_service_file_url }}"
+      - "Variable: containerd_runc_url , Value: {{ containerd_runc_url }}"
+      - "Variable: containerd_crictl_url , Value: {{ containerd_crictl_url }}"
+      - "Variable: containerd_cpu_arch , Value: {{ containerd_cpu_arch }}"
+
+- name: Download containerd
+  ansible.builtin.get_url:
+    url: "{{ containerd_url }}"
+    dest: /var/tmp/containerd.tar.gz
+    mode: '0755'
+
+- name: Extract containerd.tar.gz into /usr/local
+  ansible.builtin.unarchive:
+    src: /var/tmp/containerd.tar.gz
+    dest: /usr/local
+    remote_src: true
+
+- name: Download containerd service file
+  ansible.builtin.get_url:
+    url: "{{ containerd_service_file_url }}"
+    dest: /etc/systemd/system/containerd.service
+    mode: '0755'
+
+- name: Download runc
+  ansible.builtin.get_url:
+    url: "{{ containerd_runc_url }}"
+    dest: /usr/local/sbin/runc
+    mode: "0755"
+
+- name: Download crictl
+  ansible.builtin.get_url:
+    url: "{{ containerd_crictl_url }}"
+    dest: /var/tmp/crictl.tar.gz
+    mode: '0755'
+
+- name: Extract crictl.tar.gz into /usr/local/bin
+  ansible.builtin.unarchive:
+    src: /var/tmp/crictl.tar.gz
+    dest: /usr/local/bin
+    remote_src: true
+
+- name: Create a directory if it does not exist - /etc/containerd/
+  ansible.builtin.file:
+    path: /etc/containerd/
+    state: directory
+    mode: '0755'
+
+- name: Create containerd config.toml file
+  ansible.builtin.shell:
+    cmd: "containerd config default | sudo tee /etc/containerd/config.toml"
+    executable: /bin/sh
+  become: true
+  register: generate_config_toml
+  changed_when: generate_config_toml.rc != 0
+
+- name: Just force systemd to reread configs (2.4 and above)
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Ensure containerd is started and enabled at boot.
+  ansible.builtin.systemd_service:
+    name: containerd
+    state: started
+    enabled: true
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Configure crictl
+  ansible.builtin.shell: "echo 'runtime-endpoint: unix:///run/containerd/containerd.sock' > /etc/crictl.yaml"
+  args:
+    executable: /bin/sh
+  become: true
+  changed_when: false
+
+- name: Restart containerd service
+  ansible.builtin.systemd_service:
+    name: containerd
+    state: restarted
+    daemon_reload: true
+
+- name: Verify crictl
+  ansible.builtin.shell: "crictl images"
+  args:
+    executable: /bin/sh
+  become: true
+  register: crictl_images
+  failed_when: crictl_images.rc > 0
+  changed_when: false
+
+- name: Print return information from crictl images
+  ansible.builtin.debug:
+    var: crictl_images
+
+- name: Print status
+  ansible.builtin.debug:
+    msg: 'Installed and configured containerd service successfully!'

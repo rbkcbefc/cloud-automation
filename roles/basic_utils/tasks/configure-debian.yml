@@ -1,4 +1,5 @@
-  
+---
+
 - name: Update apt packages
   become: true
   ansible.builtin.apt:
@@ -17,8 +18,8 @@
       - python3-pip
       - htop
       - collectd
-      #- awslogs # Yet to be tested. CloudWatch logs
-      #- net-tools # netstat etc
+      - nettools
+
 - name: Ensure chrony is running.
   ansible.builtin.service:
     name: chronyd
@@ -31,28 +32,28 @@
     classic: yes
 
 - name: Install Debian OS & ARM64 - JRE
-  apt:
+  ansible.builtin.apt:
     deb: https://launchpad.net/ubuntu/+source/openjdk-22/22.0.2+9-4/+build/28918996/+files/openjdk-22-jre-headless_22.0.2+9-4_arm64.deb
   become: true
   when: ansible_facts['os_family']|lower == 'debian' and
         ansible_architecture == 'aarch64'
 
 - name: Install Debian OS & ARM64 - JDK
-  apt:
+  ansible.builtin.apt:
     deb: https://launchpad.net/ubuntu/+source/openjdk-22/22.0.2+9-4/+build/28918996/+files/openjdk-22-jdk-headless_22.0.2+9-4_arm64.deb
   become: true
   when: ansible_facts['os_family']|lower == 'debian' and
         ansible_architecture == 'aarch64'
 
 - name: Install Debian OS & AMD64 - JRE
-  apt:
+  ansible.builtin.apt:
     deb: https://launchpad.net/ubuntu/+source/openjdk-22/22.0.2+9-4/+build/28918995/+files/openjdk-22-jre-headless_22.0.2+9-4_amd64.deb
   become: true
   when: ansible_facts['os_family']|lower == 'debian' and
         ansible_architecture == 'amd64'
 
 - name: Install Debian OS & AMD64 - JDK
-  apt:
+  ansible.builtin.apt:
     deb: https://launchpad.net/ubuntu/+source/openjdk-22/22.0.2+9-4/+build/28918995/+files/openjdk-22-jdk-headless_22.0.2+9-4_amd64.deb
   become: true
   when: ansible_facts['os_family']|lower == 'debian' and
@@ -63,7 +64,9 @@
   ansible.builtin.reboot:
 
 - name: Check the Uptime of the servers
-  shell: "uptime"
-  register: Uptime
+  ansible.builtin.shell: "uptime"
+  register: uptime
+  changed_when: false
 
-- debug: var=Uptime
+- name: Show uptime
+  ansible.builtin.debug: var=uptime

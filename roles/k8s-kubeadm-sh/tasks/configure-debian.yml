@@ -1,0 +1,78 @@
+---
+
+- name: Update apt packages
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Ensure k8s dependencies are installed
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+    state: present
+
+- name: Ensure directory exists for /etc/apt/keyrings
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Delete k8s key if already exist
+  become: true
+  ansible.builtin.file:
+    path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+    state: absent
+
+- name: Add k8s sha keys
+  ansible.builtin.shell: "curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+  args:
+    executable: /bin/sh
+  become: true
+  register: add_k8s_sha_keys
+  failed_when: add_k8s_sha_keys.rc > 0
+  changed_when: add_k8s_sha_keys.rc != 0
+
+- name: Add k8s repo
+  ansible.builtin.shell: "echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ k8s_version }}/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list"
+  args:
+    executable: /bin/sh
+  become: true
+  register: add_k8s_repo
+  failed_when: add_k8s_repo.rc > 0
+  changed_when: add_k8s_repo.rc != 0
+
+- name: Re-update apt packages
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+
+# These two k8s packages are needed in both controlplane and dataplane nodes
+- name: Install k8s packages - kubeadm & kubelet
+  ansible.builtin.apt:
+    name:
+      - kubeadm
+      - kubelet
+    state: present
+
+- name: Install k8s controlplane package - kubectl
+  ansible.builtin.apt:
+    name:
+      - kubectl
+    state: present
+  when: k8s_node_role is search("controlplane")
+
+# Restart the host for Hostname & other configs to refresh
+- name: Unconditionally reboot the machine with all defaults
+  ansible.builtin.reboot:
+
+- name: Check the Uptime of the servers
+  ansible.builtin.shell: "uptime"
+  register: uptime
+  changed_when: false
+
+- name: Show uptime
+  ansible.builtin.debug:
+    var: uptime

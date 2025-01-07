@@ -17,11 +17,9 @@
       - unzip
       - wget
       - jq
+      - nettools
       - java-22-amazon-corretto-headless
       - java-22-amazon-corretto-devel
-      #- curl
-      #- java-22-openjdk-devel
-      #- awslogs # Yet to be tested. CloudWatch logs
 
 - name: Ensure chrony is running
   ansible.builtin.service:
@@ -31,13 +29,14 @@
 
 # Reboot after python3-pip
 - name: Restart server
-  command: /sbin/shutdown -r +1
+  ansible.builtin.command: /sbin/shutdown -r +1
   async: 0
   poll: 0
   ignore_errors: true
 
 - name: Check the Uptime of the servers
-  shell: "uptime"
-  register: Uptime
+  ansible.builtin.shell: "uptime"
+  register: uptime
 
-- debug: var=Uptime
+- name: Show uptime
+  ansible.builtin.debug: var=uptime

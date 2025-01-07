@@ -9,8 +9,8 @@ docker_packages:
 docker_packages_state: present
 docker_group: docker
 
-debian_user: ubuntu
-redhat_user: ec2-user
+docker_debian_user: ubuntu
+docker_redhat_user: ec2-user
 
 # Docker repo URL.
 docker_repo_url: https://download.docker.com/linux
