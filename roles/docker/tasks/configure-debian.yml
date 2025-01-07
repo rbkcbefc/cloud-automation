@@ -41,5 +41,5 @@
   ansible.builtin.package:
     name: "{{ docker_packages }}"
     state: "{{ docker_packages_state }}"
-  notify: restart docker
+  notify: Restart docker
   ignore_errors: "{{ ansible_check_mode }}"

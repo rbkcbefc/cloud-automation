@@ -9,6 +9,7 @@ To demonstrate the features, two simple Java based Microservices are built & dep
 
 - Operating Systems: Ubuntu, Amazon Linux 2023 & CentOS Streams 9
 - CPU Architectures: ARM64 & AMD64
+- Supports provisioning Self-Hosted Github Actions Runners to Build ( Java Apps ) & Deploy to AWS ECS
 - Supports provisioning multiple Environments ( Nightly, QA, Staging, Production etc ) based on reusable Terraform modules
 - Supports Bastion Host for Network Security
 - Integrates Terraform ( local-exec mode ) & Ansible for provision-time configuration by running Playbook through Bastion Host.
@@ -120,26 +121,26 @@ export PACKER_LOG_PATH=<path>
 
 This Kubernetes environment is provisioned using two Ansible roles and three Terraform modules.
 
-- Ansible Roles
+- Ansible Roles: 
 a) containerd ( roles/containerd )
 b) k8s-kubeadm-sh ( roles/k8s-kubeadm-sh )
 
-- Terraform Modules
+- Terraform Modules: 
 a) controlplane node ( envs/aws/infra/k8s/kubeadm-sh/cp-node )
 b) dataplane node-1 ( envs/aws/infra/k8s/kubeadm-sh/dp-node-1 )
 c) dataplane node-1 ( envs/aws/infra/k8s/kubeadm-sh/dp-node-2 )
 
-- Network 
+- Network: 
 The controlplane node is provisioned in the public subnet w/ api-server listens on port: 6443
 The dataplane nodes are provisioned in the private subnet and can only be ssh'd via bastion host
 
-- Secrets
+- Secrets: 
 Once control plane node is provisioned, the generated join token & discovery-token are stored in the ansible-vault.
 
-- Manifests
+- Manifests: 
 Kubernetes manifests files ( namespace, deployment and service ) are in directory: envs/aws/app/mock-email-service/k8s-kubeadm-sh
 
-- Summary
+- Summary: 
 Once the k8s environment setup is complete, the mock-email-service IP address can be accessed internally via LoadBalancer IP address
 
 kubectl get service -n mock-service
