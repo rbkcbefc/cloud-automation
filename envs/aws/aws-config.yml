@@ -18,11 +18,10 @@ environments:
       - "10.0.103.0/24"
     enable_nat_gateway: true
     enable_vpn_gateway: true
-    bastion_host_name: 54.164.57.2 # helps to execute ansible playbooks
+    bastion_host_name: 18.233.98.92 # helps to execute ansible playbooks
     bastion_host_user: ubuntu
     bastion_host_private_key_file_path: ~/.ssh/rbkbusde-us-east-1.pem
     ami_user: ubuntu
-    key_name: rbkbusde-us-east-1
     ansible_dynamic_inventory: hosts.aws_ec2.yml
     cpu_arch: "ARM64"
     my_base_ami: ami-0881d2894a9c98dbf

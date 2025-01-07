@@ -1,8 +1,9 @@
 .DS_Store
-
+.vscode
 # Vagrantfile - copy Vagrantfile_centos (or) Vagrant_ubuntu as Vagrantfile. 
 # Lastly, update ansible.ini file w/ running host
 Vagrantfile
+.Vagrantfile.swp
 **/.vagrant/*
 ansible-vagrant-vars.yml
 

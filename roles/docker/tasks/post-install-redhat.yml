@@ -1,7 +1,8 @@
 ---
 
 - name: Add remote user to "docker" group
-  ansible.builtin.shell: "usermod -aG {{ docker_group }} {{ redhat_user }}"
+  ansible.builtin.shell: "usermod -aG {{ docker_group }} {{ docker_redhat_user }}"
   args:
     executable: /bin/sh
   become: true
+  changed_when: false

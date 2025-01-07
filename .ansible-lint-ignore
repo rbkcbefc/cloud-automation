@@ -1,0 +1,3 @@
+# ignore lint error: set -o pipe 
+skip_list:
+  - '306'

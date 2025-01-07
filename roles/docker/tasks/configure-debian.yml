@@ -1,7 +1,7 @@
 ---
 
 - name: Ensure dependencies are installed.
-  apt:
+  ansible.builtin.apt:
     name:
       - apt-transport-https
       - ca-certificates
@@ -9,7 +9,7 @@
     state: present
 
 - name: Ensure directory exists for /etc/apt/keyrings
-  file:
+  ansible.builtin.file:
     path: /etc/apt/keyrings
     state: directory
     mode: '0755'
@@ -25,18 +25,20 @@
   ignore_errors: "{{ docker_apt_ignore_key_error }}"
 
 - name: Ensure curl is present
-  package: name=curl state=present
+  ansible.builtin.package: 
+    name: curl 
+    state: present
   when: add_repository_key is failed | bool
 
 - name: Add Docker repository.
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "{{ docker_apt_repository }}"
     state: present
     filename: "{{ docker_apt_filename }}"
     update_cache: true
 
 - name: Install Docker packages.
-  package:
+  ansible.builtin.package:
     name: "{{ docker_packages }}"
     state: "{{ docker_packages_state }}"
   notify: restart docker

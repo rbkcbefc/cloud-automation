@@ -1,7 +1,7 @@
 ---
 
 - name: Verify Connectivity
-  hosts: '{{ targets }}'
+  hosts: all
   gather_facts: true
   vars_files:
     - ansible-secret-vars.yml

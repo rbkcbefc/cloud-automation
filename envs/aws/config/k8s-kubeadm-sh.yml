@@ -1,0 +1,17 @@
+environments:
+  k8s-kubeadm-sh:
+    region: "us-east-1"
+    tf_state_aws_s3_bucket: "agilealm-cloud-automation-k8s-kubeadm-sh"
+    vpc_name: "vpc-nightly"
+    cidr_block: "10.0.0.0/16"
+    bastion_host_name: 18.233.98.92 # helps to execute ansible playbooks
+    bastion_host_user: ubuntu
+    bastion_host_private_key_file_path: ~/.ssh/rbkbusde-us-east-1.pem
+    ami_user: ubuntu
+    ansible_dynamic_inventory: hosts.aws_ec2.yml
+    cpu_arch: "ARM64"
+    my_containerd_ami: ami-03231108afbff9297
+    ec2_instance_key_name: rbkbusde-us-east-1
+    ec2_instance_profile_name: ec2-core-profile
+    ec2_instance_type: t4g.medium
+    k8s_kubeadm_sh_cp_host: 18.206.54.198

@@ -1,0 +1,13 @@
+---
+
+containerd_cpu_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
+containerd_version: "2.0.1"
+containerd_url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-{{ containerd_cpu_arch }}.tar.gz"
+containerd_service_file_url: "https://raw.githubusercontent.com/containerd/containerd/main/containerd.service"
+
+containerd_runc_version: "1.2.3"
+containerd_runc_url: "https://github.com/opencontainers/runc/releases/download/v{{ containerd_runc_version }}/runc.{{ containerd_cpu_arch }}"
+
+containerd_crictl_version: "1.32.0"
+containerd_crictl_url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{ containerd_crictl_version }}/crictl-v{{ containerd_crictl_version }}-linux-{{ containerd_cpu_arch }}.tar.gz"

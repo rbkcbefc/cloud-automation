@@ -1,0 +1,191 @@
+---
+
+- name: Print variables
+  ansible.builtin.debug:
+    msg:
+      - "Variable: cpu_arch , Value: {{ cpu_arch }}"
+      - "Variable: k8s_node_role , Value: {{ k8s_node_role }}"
+      - "Variable: ansible_user , Value: {{ ansible_user }}"
+      - "Variable: cni_url , Value: {{ cni_url }}"
+      - "Variable: control_plane_host , Value: {{ control_plane_host }}"
+      - "Variable: control_plane_endpoint , Value: {{ control_plane_endpoint }}"
+      - "Variable: join_cmd , Value: {{ join_cmd }}"
+      - "Variable: current_node_name , Value: {{ current_node_name }}"
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ current_node_name }}"
+
+- name: Touch k8s.conf file
+  ansible.builtin.file:
+    path: "/etc/modules-load.d/k8s.conf"
+    state: touch
+    mode: '0644'
+
+- name: Configure k8s.conf file
+  ansible.builtin.copy:
+    dest: "/etc/modules-load.d/k8s.conf"
+    content: |
+      overlay
+      br_netfilter
+    mode: '0644'
+
+- name: Download cni
+  ansible.builtin.get_url:
+    url: "{{ cni_url }}"
+    dest: /var/tmp/cni.tgz
+    mode: '0644'
+
+- name: Create a directory if it does not exist - /opt/cni/bin
+  ansible.builtin.file:
+    path: /opt/cni/bin
+    state: directory
+    mode: '0755'
+
+- name: Extract cni.tgz into /opt/cni/bin
+  ansible.builtin.unarchive:
+    src: /var/tmp/cni.tgz
+    dest: /opt/cni/bin
+    remote_src: true
+
+- name: Disable swap for current session
+  ansible.builtin.command: swapoff -a
+  become: true
+  changed_when: false
+
+- name: Disable swap permanently
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: true
+  when: ansible_swaptotal_mb > 0
+
+- name: Configuring the systemd cgroup driver
+  ansible.builtin.lineinfile:
+    dest: "/etc/containerd/config.toml"
+    insertafter: 'containerd.runtimes.runc.options'
+    line: "            SystemdCgroup = true"
+  become: true
+
+- name: Configure container runtime
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_file: /etc/sysctl.d/k8s.conf
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Restart containerd
+  ansible.builtin.systemd_service:
+    name: containerd
+    state: restarted
+
+- name: Install k8s tools
+  ansible.builtin.include_tasks: configure-debian.yml
+  when: ansible_os_family == 'Debian'
+
+- name: Initialize control plane node ( might take few mins )
+  ansible.builtin.shell: "sudo kubeadm init --pod-network-cidr={{ pod_network_cidr }} --apiserver-bind-port={{ control_plane_port }} --control-plane-endpoint={{ control_plane_endpoint }}"
+  args:
+    executable: /bin/sh
+  become: true
+  register: init_controlplane
+  failed_when: init_controlplane.rc > 0
+  when: k8s_node_role is search("controlplane")
+  changed_when: false
+
+- name: Create a directory if it does not exist - $HOME/.kube
+  ansible.builtin.file:
+    path: "{{ user_home_dir }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+  when: k8s_node_role is search("controlplane")
+
+- name: Configure kubectl for non-root users
+  ansible.builtin.copy:
+    src: "/etc/kubernetes/admin.conf"
+    dest: "{{ user_home_dir }}/.kube/config"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+    remote_src: true
+  become: true
+  when: k8s_node_role is search("controlplane")
+
+- name: Verify file - $HOME/.kube/config is present
+  ansible.builtin.wait_for:
+    path: "{{ user_home_dir }}/.kube/config"
+  when: k8s_node_role is search("controlplane")
+
+- name: Download kube config file from controlplane node
+  ansible.builtin.fetch:
+    src: "{{ user_home_dir }}/.kube/config"
+    dest: /var/tmp/ # The downloaded file name will be 'config'
+    flat: true
+  become: true
+  when: k8s_node_role is search("controlplane")
+
+- name: Get join command
+  ansible.builtin.command: "kubeadm token create --print-join-command"
+  register: join_command_output
+  when: k8s_node_role is search("controlplane")
+  changed_when: false
+
+- name: Print controlplane status and next steps for dataplane
+  ansible.builtin.debug:
+    msg:
+      - ""
+      - ""
+      - "Installed and configured Controlplane successfully!"
+      - ""
+      - ""
+      - "To install & configure Dataplane nodes, here are the next steps: "
+      - ""
+      - "Step: 1/4"
+      - "Copy the downloaded kube config file to home .kube directory: cp /var/tmp/config $HOME/.kube/"
+      - ""
+      - "Step: 2/4"
+      - "SSH into the control plane host and install Calico"
+      - "A) kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/tigera-operator.yaml"
+      - "B) kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/custom-resources.yaml"
+      - ""
+      - "Step: 3/4"
+      - "To register the dataplane nodes w/ cluster, we need to configure below role variable in file: envs/aws/config/k8s-kubeadm-sh.yml"
+      - "a) k8s_kubeadm_sh_cp_host: {{ control_plane_host }}"
+      - ""
+      - "Step: 4/4"
+      - "To register the dataplane nodes w/ cluster, we need to update ansible-vault file: ansible-secret-vars.yml"
+      - "A) k8s_kubeadm_sh_join_token: "
+      - "B) k8s_kubeadm_sh_discovery_token: "
+      - ""
+      - ""
+      - "Use below information to configure above three variable and provision dataplane nodes."
+      - ""
+      - "{{ join_command_output.stdout_lines[0] }}"
+      - ""
+      - "Important: These two tokens are valid only for 24 hours!!!"
+      - ""
+      - ""
+  when: k8s_node_role is search("controlplane")
+
+- name: Register this Dataplane node with the cluster
+  ansible.builtin.shell: "{{ join_cmd }}"
+  args:
+    executable: /bin/sh
+  become: true
+  register: register_dataplane_node
+  failed_when: register_dataplane_node.rc != 0
+  when: k8s_node_role is search("dataplane")
+  changed_when: false
+
+- name: Print dataplane status
+  ansible.builtin.debug:
+    msg:
+      - "Installed and configured dataplane successfully!"
+      - ""
+      - "{{ register_dataplane_node }}"
+  when: k8s_node_role is search("dataplane")

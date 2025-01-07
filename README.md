@@ -19,6 +19,8 @@ To demonstrate the features, two simple Java based Microservices are built & dep
 - Integrates Route53 ( Domain: agilealm.click )
 - Integrates HTTPS/SSL using Amazon Certificate Manager ( ACM )
 
+This project has been extended support kubeadm based self-hosted Kubernetes environment ( 1 Control Plane node & 2 Dataplane nodes ) on AWS using Containerd and Calico. For more information, scroll below and checkout section: Kubernetes ( k8s-kubeadm-sh )
+
 # Technologies
 
 - Vagrant ( https://www.vagrantup.com/ ) - Vagrant enables the creation and configuration of lightweight, reproducible, and portable development environments.
@@ -98,10 +100,12 @@ ssh -J <user>@<bastion_host_ip> <user>@<target_host_ip>
 # Debug Vagrant
 export VAGRANT_LOG=info
 vagrant up --debug &> vagrant.log
-Link: https://developer.hashicorp.com/vagrant/docs/other/debugging
+Link 1: https://developer.hashicorp.com/vagrant/docs/other/debugging
+Link 2: https://developer.hashicorp.com/vagrant/docs/provisioning/ansible_intro
 
 # Debug Ansible 
-export ANSIBLE_DEBUG=1
+export ANSIBLE_DEBUG=true
+export ANSIBLE_VERBOSITY=2 # change to 3/4 as needed
 config file: ansible.cfg
 
 # Debug Terraform 
@@ -111,3 +115,35 @@ export TF_LOG_PATH=<path>
 # Debug Packer 
 export PACKER_LOG=1
 export PACKER_LOG_PATH=<path>
+
+# Kubernetes ( k8s-kubeadm-sh )
+
+This Kubernetes environment is provisioned using two Ansible roles and three Terraform modules.
+
+! Ansible Roles
+a) containerd ( roles/containerd )
+b) k8s-kubeadm-sh ( roles/k8s-kubeadm-sh )
+
+! Terraform Modules
+a) controlplane node ( envs/aws/infra/k8s/kubeadm-sh/cp-node )
+b) dataplane node-1 ( envs/aws/infra/k8s/kubeadm-sh/dp-node-1 )
+c) dataplane node-1 ( envs/aws/infra/k8s/kubeadm-sh/dp-node-2 )
+
+! Network 
+The controlplane node is provisioned in the public subnet w/ api-server listens on port: 6443
+The dataplane nodes are provisioned in the private subnet and can only be ssh'd via bastion host
+
+! Secrets
+Once controlplane is provisioned, the generated token & discovery-token are stored in the ansible-vault.
+
+! Manifests
+Kubernetes manifests files ( namespace, deployment and service ) are in directory: envs/aws/app/mock-email-service/k8s-kubeadm-sh
+
+! Summary
+Once the k8s environment setup is complete, the mock-email-service IP address can be accessed internally via LoadBalancer IP address
+
+kubectl get service -n mock-service
+
+
+- Chao
+

@@ -33,6 +33,7 @@
       - wget
       - jq
       - java-21-openjdk-devel
+      - nettools
       #- awslogs # Yet to be tested. CloudWatch logs
 
 - name: Ensure chrony is running

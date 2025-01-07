@@ -12,6 +12,7 @@ Vagrant.configure("2") do |config|
     end
 
     caubuntu.vm.provision "ansible" do |ansible|
+      ansible.verbose = "vv"
       ansible.playbook = "playbooks/setup-base-image.yml"
     end
   end

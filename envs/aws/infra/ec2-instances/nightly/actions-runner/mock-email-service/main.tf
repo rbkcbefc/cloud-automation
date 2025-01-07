@@ -37,7 +37,7 @@ module "actions_runner" {
   instance_type = "t4g.micro"
   cost_center = "infra"
   ami_id = local.config.environment.my_docker_ami # My latest Ubuntu Docker AMI
-  key_name = local.config.environment.key_name
+  key_name = local.config.environment.ec2_instance_key_name
   vpc_security_group_ids = [data.aws_security_group.internal_host_sg.id]
   subnet_id = data.aws_subnet.private_subnet_1a.id
   wait_for_ssh = false
