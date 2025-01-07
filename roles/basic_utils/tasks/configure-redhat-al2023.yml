@@ -17,7 +17,7 @@
       - unzip
       - wget
       - jq
-      - nettools
+      - net-tools
       - java-22-amazon-corretto-headless
       - java-22-amazon-corretto-devel
 

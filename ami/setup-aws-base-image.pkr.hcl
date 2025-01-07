@@ -88,7 +88,7 @@ source "amazon-ebs" "al2023" {
 build {
   name = "my-base-ami"
   sources = [
-    "source.amazon-ebs.al2023"
+    "source.amazon-ebs.al2023",
     "source.amazon-ebs.ubuntu",
     "source.amazon-ebs.centos-stream-9"
   ]
