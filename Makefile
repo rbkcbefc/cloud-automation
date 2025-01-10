@@ -63,6 +63,3 @@ init_k8s_kubeadm_dh_cp_node:
 k8s_kubeadm_sh_dp_pull_image:
 	ECR_PASSWORD=$(aws ecr get-login-password --region us-east-1)
 	sudo crictl pull --creds "AWS:$ECR_PASSWORD" ${image_uri}
-
-install_tf_apple_silicon_helper:
-	brew install kreuzwerker/taps/m1-terraform-provider-helper
