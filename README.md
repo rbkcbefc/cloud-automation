@@ -117,6 +117,9 @@ export TF_LOG_PATH=<path>
 export PACKER_LOG=1
 export PACKER_LOG_PATH=<path>
 
+# crictl
+https://www.virtualizationhowto.com/2024/12/crictl-kubernetes-command-line-tool-for-troubleshooting/
+
 # Kubernetes ( k8s-kubeadm-sh )
 
 This Kubernetes environment is provisioned using two Ansible roles and three Terraform modules.
