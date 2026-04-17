@@ -1,153 +1,451 @@
-# About - Cloud Automation
+# Cloud Automation Framework
 
-This framework integrates Vagrant, Ansible, Packer &amp; Terraform Infrastructure As Code (IaC) DevOps Tools to implement CI/CD using Github Actions in AWS Elastic Container Service ( ECS - Container Orchestration in Bridge Mode ) Platform.
+A comprehensive Infrastructure as Code (IaC) framework that integrates **Vagrant**, **Ansible**, **Packer**, and **Terraform** to automate cloud infrastructure deployment on AWS. This project demonstrates modern DevOps practices with CI/CD using GitHub Actions, deploying containerized microservices on AWS ECS and self-hosted Kubernetes clusters.
 
-To demonstrate the features, two simple Java based Microservices are built & deployed on AWS ECS.
+## Table of Contents
 
-- Mock Email Service ( https://github.com/rbkcbefc/mock-email-service )
-- Mock Nasa Sound API Service ( https://github.com/rbkcbefc/mock-nasa-sound-api-service )
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Technologies](#technologies)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Documentation](#documentation)
+- [Example Microservices](#example-microservices)
+- [Debugging](#debugging)
+- [Contributing](#contributing)
 
-- Operating Systems: Ubuntu, Amazon Linux 2023 & CentOS Streams 9
-- CPU Architectures: ARM64 & AMD64
-- Supports provisioning Self-Hosted Github Actions Runners to Build ( Java Apps ) & Deploy to AWS ECS
-- Supports provisioning multiple Environments ( Nightly, QA, Staging, Production etc ) based on reusable Terraform modules
-- Supports Bastion Host for Network Security
-- Integrates Terraform ( local-exec mode ) & Ansible for provision-time configuration by running Playbook through Bastion Host.
-- Integrates Elastic Container Registry ( ECR ) to store Container Images
-- Integrates Ansible AWS Dynamic Inventory Plugin
-- Integrates Ansible Secrets 
-- Integrates Jinja Templates in Terraform & Ansible
-- Integrates Route53 ( Domain: agilealm.click )
-- Integrates HTTPS/SSL using Amazon Certificate Manager ( ACM )
+## Overview
 
-This project has been extended to support kubeadm based self-hosted Kubernetes environment ( 1 Control plane node & 2 Data plane nodes ) on AWS using Containerd and Calico. For more information, scroll below and checkout section: Kubernetes ( k8s-kubeadm-sh )
+This framework provides a complete DevOps automation solution for AWS cloud infrastructure, featuring:
 
-# Technologies
+- **Multi-environment support**: Nightly, QA, Staging, and Production
+- **Container orchestration**: AWS ECS (Bridge Mode) and Kubernetes (kubeadm)
+- **CI/CD automation**: GitHub Actions with self-hosted runners
+- **Infrastructure as Code**: Terraform modules and Ansible roles
+- **Secure networking**: Bastion host architecture for enhanced security
+- **Multi-platform**: Ubuntu, Amazon Linux 2023, and CentOS Stream 9
+- **Multi-architecture**: ARM64 and AMD64 support
 
-- Vagrant ( https://www.vagrantup.com/ ) - Vagrant enables the creation and configuration of lightweight, reproducible, and portable development environments.
-- Ansible ( https://docs.ansible.com/ ) - Ansible lets you automate virtually any IT task ( Manage and maintain system configuration ).
-- Packer ( https://www.packer.io/ ) - Automate image builds with Packer
-- Terraform ( https://www.terraform.io/ ) - Infrastructure automation to provision and manage resources in any cloud or data center.
+## Features
 
-# Methodology
+### Core Capabilities
 
-- Develop Ansible Roles & Playbooks using Vagrant based Virtual Machines running on developers Laptops.
-- Build Virtual Machine to run on Cloud Providers / Hyperscalers (like AWS, GCP & Azure ) using Packer and Ansible ( locally tested Roles and Playbooks )
-- Provision Infrastructure ( Cloud Resources like AWS VPC, EC2 Instances, ALB, S3 Bucket etc ) using Terraform
-- Configuration Management using Ansible
+- **Self-Hosted GitHub Actions Runners** - Build and deploy Java applications directly to AWS ECS
+- **Multi-Environment Provisioning** - Reusable Terraform modules for Nightly, QA, Staging, and Production
+- **Bastion Host Security** - Secure access to internal infrastructure via jump host
+- **Terraform + Ansible Integration** - Provision-time configuration using local-exec provisioner
+- **AWS ECR Integration** - Private container registry for Docker images
+- **Dynamic Inventory** - Ansible AWS EC2 dynamic inventory plugin
+- **Secrets Management** - Ansible Vault for encrypted credentials
+- **Template Support** - Jinja2 templates in both Terraform and Ansible
+- **DNS & SSL** - Route53 integration with ACM certificates (domain: agilealm.click)
+- **Kubernetes Support** - Self-hosted kubeadm cluster (1 control plane + 2 data plane nodes) with Containerd and Calico
 
-# Getting Started
+### Platform Support
 
-- This project's Vagrantfile is configured to develop using Mac Book Pro M3 Chip ( ARM64 ).
-In case you have Intel chip (AMD64), update the Vagrantfile to launch VM ( centos / ubuntu) of AMD64 architecture.
-- Setup an account in AWS and configure AWS CLI
-- Install Ansible, Vagrant, Packer & Terraform
+| Component | Options |
+|-----------|---------|
+| **Operating Systems** | Ubuntu, Amazon Linux 2023, CentOS Stream 9 |
+| **CPU Architectures** | ARM64, AMD64 |
+| **Container Runtimes** | Docker, Containerd |
+| **Orchestration** | AWS ECS (Bridge Mode), Kubernetes (kubeadm) |
 
-# Configuration Management ( Ansible )
+## Architecture
 
-- Checkout the two directories ( roles & playbooks ) for setting-up Golden Image ( all basic utilities ) , Docker, Github Self-hosting Actions Runner, AWS ECS Agent + ECR Helper etc.
+This project follows a layered architecture approach:
 
-# Development Environment ( Vagrant Virtual Machine )
+1. **Development Layer** - Vagrant VMs for local development and testing
+2. **Image Layer** - Packer for building golden AMIs with pre-configured software
+3. **Infrastructure Layer** - Terraform for provisioning AWS resources
+4. **Configuration Layer** - Ansible for runtime configuration management
+5. **Application Layer** - Containerized microservices deployed via CI/CD
 
-- This step helps to verify your Ansible Playbooks (one or more roles) in your development environment (laptop)
-- Choose your OS (Ubuntu or CentOS / AL 2023). Copy Vagrantfile_centos (or) Vagrantfile_ubuntu as Vagrantfile
-- Configure your Vagrantfile "provision" section to run desired Ansible Playbook ( setup-base-image.yml / setup-docker.yml / setup-actions-runner.yml / setup-aws-ecr-ecs.yml d)
+For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
-# Build Virtual Machine Image ( Packer )
+## Technologies
 
-- This step helps to build AMIs ( Amazon Machine Image ) to launch EC2 instances.
-- To configure, create file: variables.auto.pkrvars.hcl and pass values for variables declared in file: variables.pkrvars.hcl
-- Build Base AMI:
-cd cloud_automation
+| Tool | Version | Purpose |
+|------|---------|---------|
+| [Vagrant](https://www.vagrantup.com/) | Latest | Local development environments |
+| [Ansible](https://docs.ansible.com/) | Latest | Configuration management and automation |
+| [Packer](https://www.packer.io/) | Latest | Automated AMI builds |
+| [Terraform](https://www.terraform.io/) | Latest | Infrastructure provisioning |
+| [Docker](https://www.docker.com/) | CE | Container runtime |
+| [Containerd](https://containerd.io/) | Latest | Container runtime for Kubernetes |
+
+## Prerequisites
+
+### Required Tools
+
+Install the following tools on your local machine:
+
+```bash
+# macOS (using Homebrew)
+brew install vagrant
+brew install ansible
+brew install packer
+brew install terraform
+brew install awscli
+
+# Verify installations
+vagrant --version
+ansible --version
+packer --version
+terraform --version
+aws --version
+```
+
+### AWS Account Setup
+
+1. Create an AWS account at [aws.amazon.com](https://aws.amazon.com)
+2. Configure AWS CLI with your credentials:
+   ```bash
+   aws configure
+   ```
+3. Ensure you have appropriate IAM permissions for:
+   - EC2 (instances, AMIs, security groups)
+   - VPC (networking, subnets, route tables)
+   - ECS (clusters, services, task definitions)
+   - ECR (repositories)
+   - IAM (roles, policies)
+   - Route53 (hosted zones, records)
+   - ACM (certificates)
+   - S3 (Terraform state)
+   - DynamoDB (Terraform state locking)
+
+### Hardware Requirements
+
+- **For ARM64 (Apple Silicon)**: MacBook Pro M1/M2/M3 or later
+- **For AMD64 (Intel)**: Any Intel-based system
+- At least 8GB RAM for local Vagrant VMs
+- 20GB free disk space
+
+**Note**: The Vagrantfile is pre-configured for ARM64 (Apple Silicon). For Intel systems, update the Vagrantfile to use AMD64 base boxes.
+
+## Quick Start
+
+### 1. Development Environment (Vagrant)
+
+Test Ansible playbooks locally before deploying to AWS:
+
+```bash
+# Choose your OS and copy the appropriate Vagrantfile
+cp Vagrantfile_ubuntu Vagrantfile
+# OR
+cp Vagrantfile_centos Vagrantfile
+
+# Start the VM
+vagrant up
+
+# SSH into the VM
+vagrant ssh
+
+# Destroy when done
+vagrant destroy
+```
+
+### 2. Build AMIs (Packer)
+
+Create golden AMIs for AWS EC2 instances:
+
+```bash
+# Create Packer variables file
+cp ami/variables.pkrvars.hcl ami/variables.auto.pkrvars.hcl
+# Edit ami/variables.auto.pkrvars.hcl with your AWS settings
+
+# Build base AMI
 packer build ami/setup-aws-base-image.pkr.hcl
-- Build Docker AMI:
-cd cloud_automation
+
+# Build Docker AMI
 packer build -var-file=ami/variables.auto.pkrvars.hcl ami/setup-aws-docker-image.pkr.hcl
-- Build ECS AMI
-cd cloud_automation
-packer build -var-file=ami/variables.auto.pkrvars.hcl ami/setup-aws-ecr-ecs.pkr.hcl
 
-# Provision AWS Infrastructure ( Terraform )
+# Build ECS AMI
+packer build -var-file=ami/variables.auto.pkrvars.hcl ami/setup-aws-ecr-ecs-image.pkr.hcl
+```
 
-- This step helps to provision infrastructure on the AWS Cloud
-- Configure Terraform Remote State Management ( Dynamo DB )
-cd cloud-automation
-terraform -chdir=envs/aws/infra/provider/nightly init <config_file>, plan & apply
-- Provision AWS VPC
-terraform -chdir=envs/aws/infra/vpc init <config_file>, plan & apply
-- Provision Security Groups ( bastion host, ecs, alb and internal access )
-terraform -chdir=envs/aws/infra/security-group/nightly/bastion-host init <config_file>, plan & apply
-- Provision iam-policy & iam-role
-- Provision ssm-document ( cloud-init-wait )
-- Update config: aws-config.yml 
-- Provision bastion-host
-- Provision ECR repos ( Mock Email Service & Mock Nasa Sound API Service )
-- Provision ECS ( Launch Template, ALB, ASG, ALB, Target Group & Cluster )
-- Provision Github Actions Self-hosted Runners ( Mock Email Service & Mock Nasa Sound API Service)
-- Trigger Github Action Builds  ( Mock Email Service & Mock Nasa Sound API Service) 
-- Provision ECS Services ( Mock Email Service & Mock Nasa Sound API Service) 
-- Provision Route53 ( Hosted Zone, ACM & CNAME ) - https://mockemailservice.agilealm.click/mockemailservice/index.jsp
+### 3. Provision Infrastructure (Terraform)
 
-# Continous Integration & Delivery ( Github Actions )
+Deploy AWS infrastructure:
 
-- Check the workflow: https://github.com/rbkcbefc/mock-nasa-sound-api-service/blob/master/.github/workflows/build-self-runner-arm64.yml
-Using Self-hosted Runner, Build Docker Image, Push to ECR and Deploy to ECS
+```bash
+# 1. Initialize Terraform state backend
+terraform -chdir=envs/aws/infra/provider/nightly init -backend-config=envs/aws/backend-s3-nightly.conf
+terraform -chdir=envs/aws/infra/provider/nightly plan
+terraform -chdir=envs/aws/infra/provider/nightly apply
 
-# SSH into Target Host Via Bastion Host
-ssh-add -K /Users/<user_name>/.ssh/<aws_key_file>.pem
+# 2. Create VPC
+terraform -chdir=envs/aws/infra/vpc/nightly init -backend-config=../../backend-s3-nightly.conf
+terraform -chdir=envs/aws/infra/vpc/nightly apply
+
+# 3. Create Security Groups
+terraform -chdir=envs/aws/infra/security-group/nightly/bastion-host init -backend-config=../../../backend-s3-nightly.conf
+terraform -chdir=envs/aws/infra/security-group/nightly/bastion-host apply
+
+# Continue with other components...
+```
+
+For complete deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+## Project Structure
+
+```
+cloud-automation/
+├── ami/                    # Packer configurations for building AMIs
+│   ├── setup-aws-base-image.pkr.hcl
+│   ├── setup-aws-docker-image.pkr.hcl
+│   ├── setup-aws-ecr-ecs-image.pkr.hcl
+│   ├── setup-aws-containerd-image.pkr.hcl
+│   └── variables.pkrvars.hcl
+├── roles/                  # Ansible roles (8 roles)
+│   ├── basic_utils/       # Common utilities installation
+│   ├── docker/            # Docker CE setup
+│   ├── containerd/        # Containerd runtime
+│   ├── ecr-helper/        # ECR credential helper
+│   ├── ecs-agent/         # ECS agent installation
+│   ├── aws-ssm-agent/     # SSM Session Manager
+│   ├── setup-actions-runner/  # GitHub Actions runner
+│   └── k8s-kubeadm-sh/    # Kubernetes kubeadm setup
+├── playbooks/             # Ansible playbooks (10 playbooks)
+│   ├── setup-base-image.yml
+│   ├── setup-docker.yml
+│   ├── setup-aws-ecr-ecs.yml
+│   └── setup-k8s-kubeadm-sh.yml
+├── modules/               # Terraform reusable modules
+│   └── aws/infra/
+│       ├── vpc/
+│       ├── security-group/
+│       ├── ec2-instance/
+│       ├── ecs/
+│       ├── alb/
+│       └── route53/
+├── envs/                  # Environment-specific configurations
+│   └── aws/
+│       ├── aws-config.yml        # Central configuration
+│       ├── infra/                # Infrastructure definitions
+│       │   ├── provider/
+│       │   ├── vpc/
+│       │   ├── security-group/
+│       │   ├── ec2-instances/
+│       │   ├── ecs/
+│       │   ├── ecr/
+│       │   ├── iam-role/
+│       │   ├── route53/
+│       │   └── k8s/
+│       └── app/                  # Application deployments
+│           ├── mock-email-service/
+│           └── mock-nasa-sound-api-service/
+├── Makefile               # Build automation helpers
+├── ansible.cfg            # Ansible configuration
+├── hosts.aws_ec2.yml      # AWS EC2 dynamic inventory
+├── Vagrantfile_ubuntu     # Ubuntu development VM
+└── Vagrantfile_centos     # CentOS development VM
+```
+
+## Documentation
+
+Detailed documentation is available in the following files:
+
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture and design patterns
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete step-by-step deployment guide
+- **[docs/ANSIBLE.md](docs/ANSIBLE.md)** - Ansible roles and playbooks reference
+- **[docs/TERRAFORM.md](docs/TERRAFORM.md)** - Terraform modules documentation
+- **[docs/PACKER.md](docs/PACKER.md)** - AMI building guide
+- **[docs/KUBERNETES.md](docs/KUBERNETES.md)** - Kubernetes setup and operations
+
+## Example Microservices
+
+This project deploys two sample Java microservices to demonstrate the framework:
+
+1. **[Mock Email Service](https://github.com/rbkcbefc/mock-email-service)**
+   - Simple email service simulation
+   - Deployed at: https://mockemailservice.agilealm.click/mockemailservice/index.jsp
+
+2. **[Mock NASA Sound API Service](https://github.com/rbkcbefc/mock-nasa-sound-api-service)**
+   - NASA sound API simulation
+   - CI/CD workflow: [build-self-runner-arm64.yml](https://github.com/rbkcbefc/mock-nasa-sound-api-service/blob/master/.github/workflows/build-self-runner-arm64.yml)
+
+Both services are:
+- Built using GitHub Actions self-hosted runners
+- Containerized and pushed to ECR
+- Deployed to AWS ECS with automatic rollout
+
+## SSH Access via Bastion Host
+
+Access internal infrastructure securely through the bastion host:
+
+```bash
+# Add your SSH key to the agent
+ssh-add -K /Users/<username>/.ssh/<aws_key_file>.pem
+
+# SSH to bastion host
 ssh -A <user>@<bastion_host_ip>
-ssh -J <user>@<bastion_host_ip> <user>@<target_host_ip>
 
-# Debug Vagrant
+# SSH to target host via bastion (jump host)
+ssh -J <user>@<bastion_host_ip> <user>@<target_host_ip>
+```
+
+## Debugging
+
+### Vagrant Debugging
+
+```bash
+# Enable verbose logging
 export VAGRANT_LOG=info
 vagrant up --debug &> vagrant.log
-Link 1: https://developer.hashicorp.com/vagrant/docs/other/debugging
-Link 2: https://developer.hashicorp.com/vagrant/docs/provisioning/ansible_intro
 
-# Debug Ansible 
+# View the log
+tail -f vagrant.log
+```
+
+**Resources**:
+- [Vagrant Debugging Guide](https://developer.hashicorp.com/vagrant/docs/other/debugging)
+- [Vagrant Ansible Provisioning](https://developer.hashicorp.com/vagrant/docs/provisioning/ansible_intro)
+
+### Ansible Debugging
+
+```bash
+# Enable debug mode
 export ANSIBLE_DEBUG=true
-export ANSIBLE_VERBOSITY=2 # change to 3/4 as needed
-config file: ansible.cfg
+export ANSIBLE_VERBOSITY=2  # Use 3 or 4 for more verbosity
 
-# Debug Terraform 
+# Run playbook with verbose output
+ansible-playbook -vvv playbooks/setup-base-image.yml
+```
+
+Configuration file: `ansible.cfg`
+
+### Terraform Debugging
+
+```bash
+# Enable debug logging
 export TF_LOG=debug
-export TF_LOG_PATH=<path>
+export TF_LOG_PATH=terraform-debug.log
 
-# Debug Packer 
+# Run Terraform commands
+terraform plan
+terraform apply
+
+# View logs
+tail -f terraform-debug.log
+```
+
+### Packer Debugging
+
+```bash
+# Enable Packer logging
 export PACKER_LOG=1
-export PACKER_LOG_PATH=<path>
+export PACKER_LOG_PATH=packer-debug.log
 
-# crictl
-https://www.virtualizationhowto.com/2024/12/crictl-kubernetes-command-line-tool-for-troubleshooting/
+# Build with debug output
+packer build -debug ami/setup-aws-base-image.pkr.hcl
+```
 
-# Kubernetes ( k8s-kubeadm-sh )
+### Kubernetes Troubleshooting
 
-This Kubernetes environment is provisioned using two Ansible roles and three Terraform modules.
+```bash
+# Using crictl for container inspection
+crictl ps
+crictl logs <container-id>
+crictl inspect <container-id>
+```
 
-- Ansible Roles: 
-a) containerd ( roles/containerd )
-b) k8s-kubeadm-sh ( roles/k8s-kubeadm-sh )
+**Resources**:
+- [crictl - Kubernetes CLI Tool](https://www.virtualizationhowto.com/2024/12/crictl-kubernetes-command-line-tool-for-troubleshooting/)
 
-- Terraform Modules: 
-a) controlplane node ( envs/aws/infra/k8s/kubeadm-sh/cp-node )
-b) dataplane node-1 ( envs/aws/infra/k8s/kubeadm-sh/dp-node-1 )
-c) dataplane node-1 ( envs/aws/infra/k8s/kubeadm-sh/dp-node-2 )
+## Kubernetes (k8s-kubeadm-sh)
 
-- Network: 
-The controlplane node is provisioned in the public subnet w/ api-server listens on port: 6443
-The dataplane nodes are provisioned in the private subnet and can only be ssh'd via bastion host
+This project includes a self-hosted Kubernetes environment using **kubeadm** with **Containerd** runtime and **Calico** networking.
 
-- Secrets: 
-Once control plane node is provisioned, the generated join token & discovery-token are stored in the ansible-vault.
+### Architecture
 
-- Manifests: 
-Kubernetes manifests files ( namespace, deployment and service ) are in directory: envs/aws/app/mock-email-service/k8s-kubeadm-sh
+**Components**:
+- **1 Control Plane Node** - Manages the cluster (public subnet, API server on port 6443)
+- **2 Data Plane Nodes** - Worker nodes (private subnet, accessible via bastion host)
 
-- Summary: 
-Once the k8s environment setup is complete, the mock-email-service IP address can be accessed internally via LoadBalancer IP address
+**Implementation**:
 
+**Ansible Roles**:
+- `roles/containerd` - Installs and configures containerd runtime
+- `roles/k8s-kubeadm-sh` - Sets up Kubernetes cluster with kubeadm
+
+**Terraform Modules**:
+- `envs/aws/infra/k8s/kubeadm-sh/cp-node` - Control plane node
+- `envs/aws/infra/k8s/kubeadm-sh/dp-node-1` - Data plane node 1
+- `envs/aws/infra/k8s/kubeadm-sh/dp-node-2` - Data plane node 2
+
+**Network Design**:
+- Control plane in public subnet (API server accessible on port 6443)
+- Data plane nodes in private subnet (accessed via bastion host)
+- Calico CNI for pod networking
+
+**Secrets Management**:
+- Join tokens and discovery tokens stored in `ansible-vault`
+- Generated during control plane provisioning
+- Used for joining data plane nodes to the cluster
+
+**Application Deployment**:
+Kubernetes manifests are located in:
+```
+envs/aws/app/mock-email-service/k8s-kubeadm-sh/
+├── namespace.yaml
+├── deployment.yaml
+└── service.yaml
+```
+
+**Accessing Services**:
+```bash
+# Get service information
 kubectl get service -n mock-service
 
+# The mock-email-service is accessible via LoadBalancer IP
+kubectl get svc -n mock-service
+```
 
-- Chao
+For detailed Kubernetes setup instructions, see [docs/KUBERNETES.md](docs/KUBERNETES.md).
+
+## Makefile Commands
+
+The project includes a Makefile with helpful commands:
+
+```bash
+# Install Terraform helper for Apple Silicon
+make install-tf-helper
+
+# Create new Ansible role
+make create-role ROLE_NAME=<name>
+
+# Create new Terraform module
+make create-module MODULE_NAME=<name>
+
+# View all available commands
+make help
+```
+
+## Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Test your changes locally using Vagrant
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+## License
+
+This project is provided as-is for educational and demonstration purposes.
+
+## Acknowledgments
+
+- HashiCorp for Vagrant, Packer, and Terraform
+- Red Hat for Ansible
+- Amazon Web Services for cloud infrastructure
+- The Kubernetes community
+
+---
+
+**Note**: This project is configured for the domain `agilealm.click`. Update Route53 and ACM configurations for your own domain.
 
