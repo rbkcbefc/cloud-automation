@@ -150,4 +150,3 @@ kubectl get service -n mock-service
 
 
 - Chao
-
