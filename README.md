@@ -447,4 +447,6 @@ This project is provided as-is for educational and demonstration purposes.
 
 ---
 
+**Note**: This project is configured for the domain `agilealm.click`. Update Route53 and ACM configurations for your own domain.
+
 - Chao
